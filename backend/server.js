@@ -18,7 +18,9 @@ const _dirname=path.resolve();
 // Middleware
 // ====================
 
-app.use(cors());
+app.use(cors({
+  origin: "https://hackerfeed.onrender.com"
+}));
 
 app.use(express.json());
 
