@@ -8,10 +8,11 @@ const authRoutes = require("./routes/auth");
 const storyRoutes = require("./routes/stories");
 const scrapeRoutes = require("./routes/scrape");
 const { runScraper } = require("./controllers/scraperController");
-
+const path = require("path");
 dotenv.config();
 
 const app = express();
+const _dirname=path.resolve();
 
 // ====================
 // Middleware
@@ -95,7 +96,10 @@ mongoose
     // ====================
 
     const PORT = process.env.PORT || 5000;
-
+    app.use(express.static(path.join(_dirname,"/frontend/dist")))
+    app.get('*',(req,res)=>{
+      res.sendFile(path.resolve(_dirname,"frontend","dist","index.html"));
+    })
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });

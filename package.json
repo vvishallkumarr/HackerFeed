@@ -4,8 +4,9 @@
   "description": "HackerNews Scraper - Backend API",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "build":"npm install && npm install --prefix frontend && npm run build --prefix frontend ",
+    "start": "nodemon backend/server.js",
+    "dev": "nodemon backend/server.js"
   },
   "engines": {
     "node": ">=18"
