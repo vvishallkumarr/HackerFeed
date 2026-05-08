@@ -13,60 +13,109 @@ dotenv.config();
 
 const app = express();
 
+// ====================
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.set('trust proxy', 1);
+// ====================
 
-// Rate limiting
+app.use(cors());
+
+app.use(express.json());
+
+app.set("trust proxy", 1);
+
+// ====================
+// Rate Limiter
+// ====================
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { error: "Too many requests, please try again later." },
+  message: {
+    error: "Too many requests, please try again later.",
+  },
 });
+
 app.use("/api/", limiter);
 
+// ====================
 // Routes
+// ====================
+
 app.use("/api/auth", authRoutes);
+
 app.use("/api/stories", storyRoutes);
+
 app.use("/api", scrapeRoutes);
 
-// Health check
+// ====================
+// Health Check
+// ====================
+
 app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", timestamp: new Date().toISOString() });
+  res.json({
+    success: true,
+    status: "OK",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// 404 handler
+// ====================
+// 404 Handler
+// ====================
+
 app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
+  res.status(404).json({
+    error: "Route not found",
+  });
 });
 
-// Global error handler
+// ====================
+// Global Error Handler
+// ====================
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
+
   res.status(err.status || 500).json({
     error: err.message || "Internal server error",
   });
 });
 
-// Connect to MongoDB and start server
-const PORT = process.env.PORT || 5000;
+// ====================
+// Database Connection
+// ====================
 
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(async () => {
-    console.log("✅ Connected to MongoDB");
+    console.log("✅ MongoDB Connected");
+
+    // ====================
+    // Start Server
+    // ====================
+
+    const PORT = process.env.PORT || 5000;
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
-    // Run scraper on server start
-    console.log("🕷️  Running initial scrape...");
-    await runScraper();
-    console.log("✅ Initial scrape complete");
+
+    // ====================
+    // Initial Scraper Run
+    // ====================
+
+    try {
+      console.log("🕷️ Running initial scraper...");
+
+      await runScraper();
+
+      console.log("✅ Initial scraper completed");
+    } catch (error) {
+      console.error("❌ Scraper error:", error.message);
+    }
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
+
     process.exit(1);
   });
-
-module.exports = app;
